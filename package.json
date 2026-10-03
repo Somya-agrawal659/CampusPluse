@@ -17,6 +17,7 @@
   "author": "Antigravity",
   "license": "MIT",
   "dependencies": {
+    "@upstash/redis": "^1.39.0",
     "web-push": "^3.6.7"
   }
 }

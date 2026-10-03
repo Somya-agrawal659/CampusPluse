@@ -81,6 +81,7 @@ body {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   line-height: 1.55;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   display: flex;
@@ -1253,7 +1254,7 @@ button {
   border: 1px solid var(--border-card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-subtle);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .table-top-bar {
@@ -1281,6 +1282,7 @@ button {
 
 .editorial-admin-table {
   width: 100%;
+  min-width: 760px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -1779,11 +1781,86 @@ button {
   .bottom-callouts-section {
     grid-template-columns: 1fr;
   }
+
+  .admin-header-row {
+    align-items: flex-start;
+  }
+
+  .admin-top-actions {
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
+  .main-body-container,
+  .nav-wrapper {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .app-navbar,
+  .admin-nav-bar {
+    height: auto;
+    min-height: 64px;
+    padding: 10px 0;
+  }
+
+  .admin-nav-bar .nav-wrapper {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-nav-bar .admin-mini-badge {
+    display: none;
+  }
+
+  .admin-nav-bar .btn-back-home {
+    padding: 9px 11px;
+  }
+
+  .admin-nav-bar .btn-back-home span {
+    display: none;
+  }
+
+  .brand-name {
+    font-size: 1.05rem;
+  }
+
   .center-nav {
     display: none;
+  }
+
+  .admin-page-title {
+    font-size: 1.65rem;
+    line-height: 1.1;
+  }
+
+  .admin-page-sub {
+    line-height: 1.5;
+  }
+
+  .admin-top-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-top-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .table-top-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .footer-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .hero-title {

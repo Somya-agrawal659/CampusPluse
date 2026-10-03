@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const webpush = require('web-push');
+const { Redis } = require('@upstash/redis');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -10,6 +11,10 @@ const DATA_DIR = process.env.VERCEL
   : path.join(__dirname, 'data');
 const VAPID_KEYS_PATH = path.join(DATA_DIR, 'vapid-keys.json');
 const SUBSCRIPTIONS_PATH = path.join(DATA_DIR, 'push-subscriptions.json');
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+const redis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null;
+const hasVapidConfig = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -34,8 +39,18 @@ webpush.setVapidDetails(
 
 let subscriptions = loadJson(SUBSCRIPTIONS_PATH, []);
 
-function saveSubscriptions() {
-  fs.writeFileSync(SUBSCRIPTIONS_PATH, JSON.stringify(subscriptions, null, 2));
+async function getSubscriptions() {
+  if (redis) return (await redis.get('campuspulse:push-subscriptions')) || [];
+  return subscriptions;
+}
+
+async function saveSubscriptions(nextSubscriptions) {
+  subscriptions = nextSubscriptions;
+  if (redis) {
+    await redis.set('campuspulse:push-subscriptions', subscriptions);
+  } else {
+    fs.writeFileSync(SUBSCRIPTIONS_PATH, JSON.stringify(subscriptions, null, 2));
+  }
 }
 
 function sendJson(res, statusCode, body) {
@@ -59,14 +74,16 @@ function readRequestBody(req) {
 }
 
 async function notifySubscribers(notice) {
+  const currentSubscriptions = await getSubscriptions();
   const payload = JSON.stringify({
-    title: notice.title,
+    title: `CampusPulse: ${notice.title}`,
     body: `${notice.category}: ${notice.description}`,
-    url: `/#notice-${notice.id}`
+    url: `/#notice-${notice.id}`,
+    tag: `campuspulse-${notice.id}`
   });
   const failedEndpoints = [];
 
-  await Promise.all(subscriptions.map(async subscription => {
+  await Promise.all(currentSubscriptions.map(async subscription => {
     try {
       await webpush.sendNotification(subscription, payload);
     } catch (error) {
@@ -79,27 +96,34 @@ async function notifySubscribers(notice) {
   }));
 
   if (failedEndpoints.length) {
-    subscriptions = subscriptions.filter(subscription => !failedEndpoints.includes(subscription.endpoint));
-    saveSubscriptions();
+    await saveSubscriptions(currentSubscriptions.filter(subscription => !failedEndpoints.includes(subscription.endpoint)));
   }
 }
 
 async function handleApiRequest(req, res, pathname) {
   if (pathname === '/api/push/public-key' && req.method === 'GET') {
+    if (process.env.VERCEL && (!hasVapidConfig || !redis)) {
+      sendJson(res, 503, { error: 'Push requires VAPID and Upstash Redis environment variables on Vercel' });
+      return true;
+    }
     sendJson(res, 200, { publicKey: process.env.VAPID_PUBLIC_KEY || vapidKeys.publicKey });
     return true;
   }
 
   if (pathname === '/api/push/subscribe' && req.method === 'POST') {
     try {
+      if (process.env.VERCEL && !redis) {
+        sendJson(res, 503, { error: 'Configure Upstash Redis on Vercel before subscribing devices' });
+        return true;
+      }
       const subscription = await readRequestBody(req);
       if (!subscription.endpoint || !subscription.keys) {
         sendJson(res, 400, { error: 'Invalid push subscription' });
         return true;
       }
-      if (!subscriptions.some(item => item.endpoint === subscription.endpoint)) {
-        subscriptions.push(subscription);
-        saveSubscriptions();
+      const currentSubscriptions = await getSubscriptions();
+      if (!currentSubscriptions.some(item => item.endpoint === subscription.endpoint)) {
+        await saveSubscriptions([...currentSubscriptions, subscription]);
       }
       sendJson(res, 201, { subscribed: true });
     } catch (error) {
