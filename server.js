@@ -5,7 +5,9 @@ const webpush = require('web-push');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'campuspulse-data')
+  : path.join(__dirname, 'data');
 const VAPID_KEYS_PATH = path.join(DATA_DIR, 'vapid-keys.json');
 const SUBSCRIPTIONS_PATH = path.join(DATA_DIR, 'push-subscriptions.json');
 
@@ -141,7 +143,7 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf'
 };
 
-const server = http.createServer(async (req, res) => {
+async function handleRequest(req, res) {
   // Normalize URL and remove query strings
   const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
   let safePath = parsedUrl.pathname;
@@ -201,12 +203,17 @@ const server = http.createServer(async (req, res) => {
     const readStream = fs.createReadStream(filePath);
     readStream.pipe(res);
   });
-});
+}
 
-server.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 Smart Campus Notice Portal is running!`);
-  console.log(`📍 URL: http://localhost:${PORT}`);
-  console.log(`🔔 Open multiple tabs to test live Push Notifications!`);
-  console.log(`====================================================`);
-});
+if (process.env.VERCEL) {
+  module.exports = handleRequest;
+} else {
+  const server = http.createServer(handleRequest);
+  server.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🚀 Smart Campus Notice Portal is running!`);
+    console.log(`📍 URL: http://localhost:${PORT}`);
+    console.log(`🔔 Open multiple tabs to test live Push Notifications!`);
+    console.log(`====================================================`);
+  });
+}
