@@ -1,9 +1,128 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const webpush = require('web-push');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const DATA_DIR = path.join(__dirname, 'data');
+const VAPID_KEYS_PATH = path.join(DATA_DIR, 'vapid-keys.json');
+const SUBSCRIPTIONS_PATH = path.join(DATA_DIR, 'push-subscriptions.json');
+
+fs.mkdirSync(DATA_DIR, { recursive: true });
+
+function loadJson(filePath, fallback) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+let vapidKeys = loadJson(VAPID_KEYS_PATH, null);
+if (!vapidKeys) {
+  vapidKeys = webpush.generateVAPIDKeys();
+  fs.writeFileSync(VAPID_KEYS_PATH, JSON.stringify(vapidKeys, null, 2));
+}
+webpush.setVapidDetails(
+  process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
+  process.env.VAPID_PUBLIC_KEY || vapidKeys.publicKey,
+  process.env.VAPID_PRIVATE_KEY || vapidKeys.privateKey
+);
+
+let subscriptions = loadJson(SUBSCRIPTIONS_PATH, []);
+
+function saveSubscriptions() {
+  fs.writeFileSync(SUBSCRIPTIONS_PATH, JSON.stringify(subscriptions, null, 2));
+}
+
+function sendJson(res, statusCode, body) {
+  res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify(body));
+}
+
+function readRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch {
+        reject(new Error('Invalid JSON body'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+async function notifySubscribers(notice) {
+  const payload = JSON.stringify({
+    title: notice.title,
+    body: `${notice.category}: ${notice.description}`,
+    url: `/#notice-${notice.id}`
+  });
+  const failedEndpoints = [];
+
+  await Promise.all(subscriptions.map(async subscription => {
+    try {
+      await webpush.sendNotification(subscription, payload);
+    } catch (error) {
+      if (error.statusCode === 404 || error.statusCode === 410) {
+        failedEndpoints.push(subscription.endpoint);
+      } else {
+        console.error('Push delivery failed:', error.message);
+      }
+    }
+  }));
+
+  if (failedEndpoints.length) {
+    subscriptions = subscriptions.filter(subscription => !failedEndpoints.includes(subscription.endpoint));
+    saveSubscriptions();
+  }
+}
+
+async function handleApiRequest(req, res, pathname) {
+  if (pathname === '/api/push/public-key' && req.method === 'GET') {
+    sendJson(res, 200, { publicKey: process.env.VAPID_PUBLIC_KEY || vapidKeys.publicKey });
+    return true;
+  }
+
+  if (pathname === '/api/push/subscribe' && req.method === 'POST') {
+    try {
+      const subscription = await readRequestBody(req);
+      if (!subscription.endpoint || !subscription.keys) {
+        sendJson(res, 400, { error: 'Invalid push subscription' });
+        return true;
+      }
+      if (!subscriptions.some(item => item.endpoint === subscription.endpoint)) {
+        subscriptions.push(subscription);
+        saveSubscriptions();
+      }
+      sendJson(res, 201, { subscribed: true });
+    } catch (error) {
+      sendJson(res, 400, { error: error.message });
+    }
+    return true;
+  }
+
+  if (pathname === '/api/push/notify' && req.method === 'POST') {
+    try {
+      const notice = await readRequestBody(req);
+      if (!notice.id || !notice.title || !notice.description) {
+        sendJson(res, 400, { error: 'Notice title, description, and id are required' });
+        return true;
+      }
+      await notifySubscribers(notice);
+      sendJson(res, 200, { notified: true });
+    } catch (error) {
+      sendJson(res, 400, { error: error.message });
+    }
+    return true;
+  }
+
+  return false;
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -22,10 +141,16 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf'
 };
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   // Normalize URL and remove query strings
   const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
   let safePath = parsedUrl.pathname;
+
+  if (safePath.startsWith('/api/')) {
+    if (await handleApiRequest(req, res, safePath)) return;
+    sendJson(res, 404, { error: 'API route not found' });
+    return;
+  }
   
   if (safePath === '/' || safePath === '') {
     safePath = '/index.html';

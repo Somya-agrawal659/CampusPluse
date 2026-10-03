@@ -15,5 +15,8 @@
     "pdf-viewer"
   ],
   "author": "Antigravity",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
 }

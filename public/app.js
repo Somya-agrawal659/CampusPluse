@@ -474,6 +474,46 @@ function initQrCode() {
   }
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+}
+
+async function registerPushSubscription() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+
+  const registration = await navigator.serviceWorker.register('/service-worker.js');
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    const response = await fetch('/api/push/public-key');
+    if (!response.ok) throw new Error('Push service is unavailable');
+    const { publicKey } = await response.json();
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey)
+    });
+  }
+
+  const response = await fetch('/api/push/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(subscription)
+  });
+  if (!response.ok) throw new Error('Could not save push subscription');
+  return registration;
+}
+
+function initPushWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/service-worker.js').then(() => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      registerPushSubscription().catch(error => console.warn('Push subscription unavailable:', error.message));
+    }
+  }).catch(error => console.warn('Service worker unavailable:', error.message));
+}
+
 function initBrowserAlerts() {
   const btnAlerts = document.getElementById('btnEnableAlerts');
   const alertsLabel = document.getElementById('alertsBtnLabel');
@@ -485,13 +525,22 @@ function initBrowserAlerts() {
       return;
     }
 
-    Notification.requestPermission().then(perm => {
+    Notification.requestPermission().then(async perm => {
       if (perm === 'granted') {
         if (alertsLabel) alertsLabel.textContent = 'Notifications Active';
-        Toast.show("Notifications Enabled!", "You'll be alerted when new opportunities drop.", "🔔");
-        new Notification("CampusPulse Alerts Active", {
-          body: "You're now subscribed to instant campus updates!"
-        });
+        try {
+          const registration = await registerPushSubscription();
+          Toast.show("Notifications Enabled!", "You'll be alerted when new opportunities drop.", "🔔");
+          if (registration) {
+            await registration.showNotification("CampusPulse Alerts Active", {
+              body: "You're now subscribed to instant campus updates!",
+              icon: '/lnct_badge.jpg',
+              data: { url: '/' }
+            });
+          }
+        } catch (error) {
+          Toast.show("Alerts Unavailable", error.message, "⚠️");
+        }
       } else {
         Toast.show("Alerts Disabled", "Permission was denied in browser settings.", "ℹ️");
       }
@@ -703,6 +752,7 @@ function escapeHTML(str) {
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   loadNotices();
+  initPushWorker();
   initQrCode();
   initBrowserAlerts();
   setupEvents();

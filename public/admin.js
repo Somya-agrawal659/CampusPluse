@@ -94,6 +94,14 @@ function saveNotices() {
   }
 }
 
+function notifyNewNotice(notice) {
+  fetch('/api/push/notify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(notice)
+  }).catch(error => console.warn('Push notification request failed:', error.message));
+}
+
 function checkAuth() {
   const isAuth = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
   const loginBox = document.getElementById('adminLoginBox');
@@ -285,6 +293,7 @@ function handleSaveNotice() {
         notices[idx].attachment = selectedUploadFile;
       }
       saveNotices();
+      notifyNewNotice(notices[idx]);
       renderDashboard();
       closeNoticeModal();
       showToast("Updated", `"${title}" saved successfully.`, "✏️");
@@ -303,6 +312,7 @@ function handleSaveNotice() {
     };
     notices.unshift(newNotice);
     saveNotices();
+    notifyNewNotice(newNotice);
     renderDashboard();
     closeNoticeModal();
     showToast("Published! ✨", `"${title}" is now active.`, "🚀");
