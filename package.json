@@ -1,0 +1,19 @@
+{
+  "name": "smart-notice-portal",
+  "version": "1.0.0",
+  "description": "Smart College Notice Portal with Student View, Admin Panel, and Real-time Browser Push Notifications",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "student-portal",
+    "notice-board",
+    "push-notifications",
+    "admin-dashboard",
+    "pdf-viewer"
+  ],
+  "author": "Antigravity",
+  "license": "MIT"
+}

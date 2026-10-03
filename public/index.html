@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusPulse — Stay in the loop.</title>
+  <meta name="description" content="Workshops, competitions, internships and important campus updates — all in one place.">
+
+  <!-- Google Fonts: Newsreader (Editorial Serif), Plus Jakarta Sans (Clean UI), Caveat (Cute Gen-Z Doodles) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==================== NAVIGATION BAR ==================== -->
+  <header class="app-navbar">
+    <div class="nav-wrapper">
+      
+      <!-- Brand Logo -->
+      <a href="#home" class="brand-logo" id="logoLink">
+        <div class="mortar-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <span class="brand-name">Campus<span class="brand-highlight">Pulse</span></span>
+      </a>
+
+      <!-- Center Nav Links -->
+      <nav class="center-nav">
+        <a href="#home" class="nav-item active" id="navHome">Home</a>
+        <a href="#opportunities" class="nav-item" id="navOpportunities">Opportunities</a>
+        <a href="#notices" class="nav-item" id="navNotices">Notices</a>
+      </nav>
+
+      <!-- Right Nav Controls (Notification Bell) -->
+      <div class="right-nav">
+        <!-- Notification Bell with Counter -->
+        <button id="btnBellAlerts" class="icon-btn-round" title="Notifications">
+          <i class="fa-regular fa-bell"></i>
+          <span class="unread-dot">1</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== MAIN STUDENT VIEW ==================== -->
+  <main id="studentView" class="main-body-container">
+    
+    <!-- ==================== HERO SECTION ==================== -->
+    <section class="hero-section-grid" id="home">
+      
+      <!-- Left Column: Typography & Search -->
+      <div class="hero-text-col">
+        <!-- Pill Subtitle -->
+        <div class="hero-kicker-pill">
+          <span>Your Campus. More Opportunities.</span>
+        </div>
+
+        <!-- Editorial Headline with Doodles -->
+        <div class="hero-headline-wrap">
+          <!-- Cute left doodle swirl -->
+          <svg class="doodle-swirl" width="48" height="48" viewBox="0 0 50 50" fill="none">
+            <path d="M10 25 C 10 10, 30 5, 30 20 C 30 35, 12 38, 18 22 C 22 12, 36 15, 38 28" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+
+          <h1 class="hero-title">
+            Stay in the <span class="script-loop">loop.</span>
+          </h1>
+
+          <!-- Sparkle doodle top-right of loop -->
+          <svg class="doodle-sparkles" width="42" height="34" viewBox="0 0 40 30" fill="none">
+            <path d="M5 20 L15 15 M20 5 L20 18 M35 12 L24 16" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <!-- Subheading -->
+        <p class="hero-subtitle">
+          Workshops, competitions, internships and important campus updates — all in one place.
+        </p>
+
+        <!-- Prominent Pill Search Bar with Circular Arrow Button -->
+        <div class="hero-search-wrapper">
+          <div class="hero-search-bar">
+            <i class="fa-solid fa-magnifying-glass search-lens"></i>
+            <input type="text" id="searchInput" placeholder="Search notices, workshops, internships..." autocomplete="off">
+            <button id="clearSearchBtn" class="search-clear-icon" style="display: none;" title="Clear search">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <button id="btnExecuteSearch" class="search-arrow-circle" title="Search">
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Visual Collage with College Building & Post-it Notes -->
+      <div class="hero-visual-col">
+        
+        <!-- Top Doodled Note -->
+        <div class="doodle-handwritten-note">
+          <span class="note-line-1">Better Opportunities</span>
+          <span class="note-line-2">Brighter You ♡</span>
+        </div>
+
+        <!-- Upper right doodle stars -->
+        <div class="doodle-grow-text">
+          <span>Grow</span>
+          <span>Learn</span>
+          <span>Explore ✧</span>
+        </div>
+
+        <!-- Organic Pebble Curved Campus Image -->
+        <div class="campus-collage-mask">
+          <img src="campus_photo.png" alt="LNCT Campus Bhopal" class="campus-bg-photo">
+        </div>
+
+        <!-- Tilted Post-it Sticker Note -->
+        <div class="post-it-sticker">
+          <span class="post-it-text">Same<br>Campus<br>New<br>Opportunities ☺</span>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== 4 CATEGORY CARDS SECTION ==================== -->
+    <section class="categories-row-section">
+      <div class="categories-flex">
+        
+        <!-- 1. Workshops (Pastel Lavender) -->
+        <div class="cat-action-card cat-purple" data-category="Workshops">
+          <div class="cat-icon-box">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div class="cat-details">
+            <h4 class="cat-name">Workshops</h4>
+            <span class="cat-sub">Learn new skills</span>
+          </div>
+          <button class="cat-circle-arrow" title="Filter Workshops">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- 2. Competitions (Pastel Peach) -->
+        <div class="cat-action-card cat-peach" data-category="Competitions">
+          <div class="cat-icon-box">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <div class="cat-details">
+            <h4 class="cat-name">Competitions</h4>
+            <span class="cat-sub">Showcase your talent</span>
+          </div>
+          <button class="cat-circle-arrow" title="Filter Competitions">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- 3. Internships (Pastel Light Blue) -->
+        <div class="cat-action-card cat-blue" data-category="Internships">
+          <div class="cat-icon-box">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <div class="cat-details">
+            <h4 class="cat-name">Internships</h4>
+            <span class="cat-sub">Gain real-world experience</span>
+          </div>
+          <button class="cat-circle-arrow" title="Filter Internships">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- 4. Important Notices (Pastel Mint / Sage) -->
+        <div class="cat-action-card cat-mint" data-category="Important Notices">
+          <div class="cat-icon-box">
+            <i class="fa-solid fa-bullhorn"></i>
+          </div>
+          <div class="cat-details">
+            <h4 class="cat-name">Important Notices</h4>
+            <span class="cat-sub">Stay updated</span>
+          </div>
+          <button class="cat-circle-arrow" title="Filter Important Notices">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== LATEST OPPORTUNITIES SECTION ==================== -->
+    <section class="opportunities-section" id="opportunities">
+      
+      <!-- Section Header with Filter Pills -->
+      <div class="section-top-bar">
+        <h2 class="section-editorial-heading">Latest opportunities</h2>
+
+        <div class="section-right-controls">
+          <!-- 5 Clean Category Filter Pills -->
+          <div class="pill-filter-bar">
+            <button class="filter-chip active" data-filter="All">All</button>
+            <button class="filter-chip" data-filter="Workshops">Workshops</button>
+            <button class="filter-chip" data-filter="Competitions">Competitions</button>
+            <button class="filter-chip" data-filter="Internships">Internships</button>
+            <button class="filter-chip" data-filter="Important Notices">Important Notices</button>
+          </div>
+
+          <a href="#opportunities" class="view-all-link" id="btnViewAll">View all <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+      </div>
+
+      <!-- Opportunities Grid Container (Wide Featured Card + Standard Notice Cards) -->
+      <div class="opportunities-showcase-grid" id="noticesShowcaseGrid">
+        
+        <!-- FEATURED WIDE NOTICE CARD -->
+        <div class="featured-notice-card" id="featuredNoticeCard">
+          <div class="featured-content-side">
+            <div class="featured-badge-row">
+              <span class="featured-gold-pill">★ Featured</span>
+              <span class="category-pill pill-competition" id="featCatPill">COMPETITION</span>
+            </div>
+            
+            <h3 class="featured-notice-title" id="featTitle">Hackathon 2026</h3>
+            <p class="featured-notice-desc" id="featDesc">
+              Big ideas. Real impact. Participate in our annual national-level hackathon and showcase your problem-solving skills.
+            </p>
+
+            <div class="featured-meta-row">
+              <span class="meta-tag"><i class="fa-regular fa-calendar"></i> <span id="featDate">10 Jan 2026</span></span>
+              <span class="meta-tag meta-deadline"><i class="fa-regular fa-hourglass-half"></i> Deadline: <span id="featDeadline">25 Dec 2025</span></span>
+            </div>
+
+            <button class="btn-dark-view" id="btnViewFeatured">
+              <span>View Details</span> <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- Featured Right Graphic (Laptop + Doodle Note) -->
+          <div class="featured-graphic-side">
+            <svg class="feat-sparkles" width="30" height="30" viewBox="0 0 30 30" fill="none">
+              <path d="M5 25 L12 18 M15 5 L15 15 M25 10 L18 14" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&auto=format&fit=crop&q=80" alt="Hackathon Laptop" class="featured-thumb-img">
+            <div class="featured-handwritten-badge">
+              <span>Ideas today<br>Impact tomorrow ♡</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 STANDARD OPPORTUNITY CARDS (WORKSHOP, INTERNSHIP, IMPORTANT NOTICE) -->
+        <div class="regular-notices-container" id="regularNoticesGrid">
+          <!-- Populated dynamically via JavaScript -->
+        </div>
+
+      </div>
+
+      <!-- Empty Results State -->
+      <div class="clean-empty-state" id="emptyNoticesState" style="display: none;">
+        <span class="empty-icon-art">🍃</span>
+        <h3>No opportunities found</h3>
+        <p>Try searching for a different keyword or select another category above.</p>
+        <button id="btnResetFilters" class="btn-clean-reset">Show All Opportunities</button>
+      </div>
+
+    </section>
+
+    <!-- ==================== BOTTOM TWO CALLOUT CARDS ==================== -->
+    <section class="bottom-callouts-section" id="notices">
+      
+      <!-- Card 1: Never miss an update (Browser Push Alerts) -->
+      <div class="callout-card callout-notifications">
+        <div class="callout-bell-circle">
+          <i class="fa-solid fa-bell"></i>
+        </div>
+        <div class="callout-text-group">
+          <h3>Never miss an update.</h3>
+          <p>Get notified about new workshops, competitions, internships and important notices directly in your browser.</p>
+        </div>
+        <div class="callout-action">
+          <button id="btnEnableAlerts" class="btn-lavender-pill">
+            <i class="fa-regular fa-bell"></i>
+            <span id="alertsBtnLabel">Enable Notifications</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2: Scan once. Stay updated (Live QR Code) -->
+      <div class="callout-card callout-qr" id="qrcode">
+        <div class="qr-thumbnail-box">
+          <div id="qrCodeCanvas"></div>
+        </div>
+        <div class="callout-text-group">
+          <h3>Scan once. Stay updated.</h3>
+          <p>Scan this QR code to open CampusPulse and access the latest notices on your phone.</p>
+        </div>
+        <div class="callout-action">
+          <button id="btnCopyPortalUrl" class="btn-icon-link" title="Copy Website Link">
+            <i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i>
+          </button>
+        </div>
+
+        <!-- Bottom right floating sticker -->
+        <div class="bottom-corner-sticker">
+          <span>Same Notices<br>Brighter Futures ♡</span>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL 1: NOTICE VIEW DETAILS ==================== -->
+  <div class="modal-dim-backdrop" id="noticeDetailModal" aria-hidden="true">
+    <div class="modal-clean-card">
+      <div class="modal-card-top">
+        <div class="modal-badges-group">
+          <span class="category-pill" id="detailModalCategoryPill">WORKSHOP</span>
+          <span class="new-tag-pill" id="detailModalNewPill" style="display: none;">NEW</span>
+          <span class="featured-gold-pill" id="detailModalImpPill" style="display: none;">⭐ Important</span>
+        </div>
+        <button class="btn-close-modal" id="btnCloseDetailModal" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-card-body">
+        <h2 class="modal-notice-title" id="detailModalTitle">Notice Title</h2>
+        
+        <div class="modal-dates-meta">
+          <span><i class="fa-regular fa-calendar"></i> Posted: <strong id="detailModalDate">12 Nov 2025</strong></span>
+          <span id="detailModalDeadlineGroup" style="display: none;">
+            <i class="fa-regular fa-hourglass-half text-rose"></i> Deadline: <strong id="detailModalDeadline">10 Nov 2025</strong>
+          </span>
+        </div>
+
+        <p class="modal-notice-body" id="detailModalBody">
+          Notice details text...
+        </p>
+
+        <!-- Attachment Download Box -->
+        <div class="modal-attachment-card" id="detailModalAttBox" style="display: none;">
+          <div class="att-card-left">
+            <div class="att-file-icon" id="detailAttIcon">
+              <i class="fa-solid fa-file-pdf"></i>
+            </div>
+            <div>
+              <h5 id="detailAttName">notice_document.pdf</h5>
+              <span id="detailAttSize">Verified Official Circular</span>
+            </div>
+          </div>
+          <a href="#" id="detailAttDownloadBtn" class="btn-clean-reset" download>
+            <i class="fa-solid fa-arrow-down-to-bracket"></i> Download
+          </a>
+        </div>
+      </div>
+
+      <div class="modal-card-footer">
+        <button id="btnModalSavePdf" class="btn-clean-reset">
+          <i class="fa-solid fa-file-arrow-down"></i> Save as PDF
+        </button>
+        <button id="btnModalShareNotice" class="btn-dark-view">
+          <i class="fa-solid fa-share-nodes"></i> Share Notice
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATIONS ==================== -->
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- Simple Footer with Admin Login Link -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>CampusPulse</span>
+      </div>
+      <p class="footer-copy">Stay in the loop. Find workshops, competitions, internships & notices.</p>
+      <div class="footer-admin-wrap">
+    
+          
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

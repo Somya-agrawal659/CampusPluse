@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal — CampusPulse Notice Manager</title>
+  <meta name="description" content="Authorized campus coordinator and admin portal for posting college notices and opportunities.">
+
+  <!-- Google Fonts: Newsreader (Editorial Serif), Plus Jakarta Sans (Clean UI), Caveat (Doodles) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Admin specific clean styling overrides */
+    .admin-nav-bar {
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(250, 248, 245, 0.96);
+      height: 72px;
+      display: flex;
+      align-items: center;
+    }
+    .btn-back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      padding: 7px 16px;
+      border-radius: var(--radius-pill);
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      transition: var(--transition);
+    }
+    .btn-back-home:hover {
+      background: #f4efe9;
+      transform: translateX(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== ADMIN NAVBAR ==================== -->
+  <header class="admin-nav-bar">
+    <div class="nav-wrapper">
+      <a href="/" class="brand-logo" title="Return to student notice board">
+        <div class="mortar-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <span class="brand-name">Campus<span class="brand-highlight">Pulse</span></span>
+        <span class="admin-mini-badge" style="margin-left: 8px; margin-bottom: 0;">Admin Portal</span>
+      </a>
+
+      <div class="right-nav">
+        <a href="/" class="btn-back-home">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>View Student Site</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN ADMIN CONTAINER ==================== -->
+  <main class="main-body-container" style="padding-top: 40px; padding-bottom: 60px;">
+    
+    <!-- ADMIN LOGIN GATE (Shown when not authenticated) -->
+    <div id="adminLoginBox" class="admin-auth-card">
+      <div class="auth-icon-circle">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2 style="font-family: var(--font-serif); font-size: 2rem; margin-bottom: 6px;">Coordinator Sign In</h2>
+      <p class="auth-sub">Manage workshops, competitions, internships and official circulars.</p>
+
+      <form id="adminLoginForm" class="admin-form" onsubmit="return false;">
+        <div class="form-field">
+          <label for="adminUser">Username</label>
+          <input type="text" id="adminUser" class="clean-input" value="admin" placeholder="e.g. admin" required autocomplete="username">
+        </div>
+        <div class="form-field">
+          <label for="adminPass">Password</label>
+          <input type="password" id="adminPass" class="clean-input" value="admin123" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" id="btnAdminSignIn" class="btn-dark-view btn-block">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In to Dashboard
+        </button>
+        <span class="auth-demo-hint">Default coordinator credentials: <strong>admin</strong> / <strong>admin123</strong></span>
+      </form>
+    </div>
+
+    <!-- ADMIN DASHBOARD (Shown when authenticated) -->
+    <div id="adminDashboardBox" class="admin-dashboard-content" style="display: none;">
+      
+      <div class="admin-header-row">
+        <div>
+          <span class="admin-mini-badge">Coordinator Mode</span>
+          <h1 class="admin-page-title">Notice & Opportunity Manager</h1>
+          <p class="admin-page-sub">Create, edit, attach documents, or remove notices across the 4 categories.</p>
+        </div>
+
+        <div class="admin-top-actions">
+          <button id="btnOpenNewNoticeModal" class="btn-dark-view">
+            <i class="fa-solid fa-plus"></i>
+            <span>Post New Notice</span>
+          </button>
+          <button id="btnAdminLogout" class="btn-clean-reset">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="admin-stats-flex">
+        <div class="admin-stat-card">
+          <span class="stat-count" id="adminStatTotal">0</span>
+          <span class="stat-name">Total Notices</span>
+        </div>
+        <div class="admin-stat-card stat-purple">
+          <span class="stat-count" id="adminStatWorkshops">0</span>
+          <span class="stat-name">Workshops</span>
+        </div>
+        <div class="admin-stat-card stat-peach">
+          <span class="stat-count" id="adminStatCompetitions">0</span>
+          <span class="stat-name">Competitions</span>
+        </div>
+        <div class="admin-stat-card stat-blue">
+          <span class="stat-count" id="adminStatInternships">0</span>
+          <span class="stat-name">Internships</span>
+        </div>
+        <div class="admin-stat-card stat-mint">
+          <span class="stat-count" id="adminStatImportant">0</span>
+          <span class="stat-name">Important</span>
+        </div>
+      </div>
+
+      <!-- Notices Management Table -->
+      <div class="admin-table-wrapper">
+        <div class="table-top-bar">
+          <h3>Published Campus Notices</h3>
+          <button id="btnResetToDefaults" class="btn-text-link">
+            <i class="fa-solid fa-rotate-left"></i> Restore Sample Notices
+          </button>
+        </div>
+        
+        <table class="editorial-admin-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Date Posted</th>
+              <th>Deadline</th>
+              <th>Attachment</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL: ADD / EDIT NOTICE ==================== -->
+  <div class="modal-dim-backdrop" id="noticeFormModal" aria-hidden="true">
+    <div class="modal-clean-card modal-form-wide">
+      <div class="modal-card-top">
+        <div>
+          <h3 class="form-modal-title" id="formModalTitle">Add New Notice</h3>
+          <p class="form-modal-sub">Publish an announcement to the student feed across the 4 main categories.</p>
+        </div>
+        <button class="btn-close-modal" id="btnCloseFormModal" title="Cancel">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="noticeEditForm" class="modal-form-content" onsubmit="return false;">
+        <input type="hidden" id="editNoticeId" value="">
+
+        <div class="form-field">
+          <label for="inputNoticeTitle">Notice Title <span class="text-rose">*</span></label>
+          <input type="text" id="inputNoticeTitle" class="clean-input" placeholder="e.g. Web Development Workshop 2026" required>
+        </div>
+
+        <div class="form-field-row">
+          <div class="form-field">
+            <label for="selectNoticeCategory">Category <span class="text-rose">*</span></label>
+            <select id="selectNoticeCategory" class="clean-select" required>
+              <option value="Workshops">Workshops</option>
+              <option value="Competitions">Competitions</option>
+              <option value="Internships">Internships</option>
+              <option value="Important Notices">Important Notices</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="inputNoticeDeadline">Deadline <span class="label-muted">(Optional)</span></label>
+            <input type="date" id="inputNoticeDeadline" class="clean-input">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="inputNoticeDesc">Short Description & Details <span class="text-rose">*</span></label>
+          <textarea id="inputNoticeDesc" rows="4" class="clean-textarea" placeholder="Provide full details, registration criteria, venue, and instructions..." required></textarea>
+        </div>
+
+        <!-- Attachment Upload -->
+        <div class="form-field">
+          <label>Upload PDF or Image Attachment <span class="label-muted">(Optional)</span></label>
+          <div class="clean-dropzone" id="fileDropzone">
+            <input type="file" id="inputFileAttachment" class="hidden-file-input" accept=".pdf,image/png,image/jpeg,image/webp">
+            <div id="dropPrompt">
+              <span class="drop-icon">📎</span>
+              <p><strong>Click to browse</strong> or drag file here</p>
+              <span class="drop-sub">PDF, PNG, JPG (Max 5MB)</span>
+            </div>
+            <div id="dropFileInfo" style="display: none;">
+              <span class="file-name" id="fileNameLabel">file.pdf</span>
+              <button type="button" id="btnRemoveFile" class="btn-text-link text-rose">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mark as Important Toggle -->
+        <div class="form-checkbox-line">
+          <label class="clean-checkbox-label">
+            <input type="checkbox" id="checkIsImportant">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-caption">★ Mark as Important / Highlighted Notice</span>
+          </label>
+        </div>
+
+        <div class="modal-form-bottom-actions">
+          <button type="button" id="btnCancelFormModal" class="btn-clean-reset">Cancel</button>
+          <button type="submit" id="btnSaveNotice" class="btn-dark-view">
+            <span id="saveNoticeLabel">Publish Notice</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Stack -->
+  <div class="toast-stack" id="toastStack"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
