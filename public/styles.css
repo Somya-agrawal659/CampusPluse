@@ -384,6 +384,7 @@ button {
 
 .hero-search-bar input {
   flex: 1;
+  min-width: 0;
   border: none;
   background: transparent;
   font-size: 0.92rem;
@@ -1864,7 +1865,43 @@ button {
   }
 
   .hero-title {
-    font-size: 2.8rem;
+    font-size: 2.65rem;
+    letter-spacing: 0;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .hero-search-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hero-search-bar {
+    padding-left: 14px;
+  }
+
+  .hero-visual-col {
+    min-width: 0;
+    padding-top: 28px;
+  }
+
+  .doodle-handwritten-note,
+  .doodle-grow-text {
+    font-size: 1rem;
+  }
+
+  .doodle-handwritten-note {
+    left: 5px;
+  }
+
+  .doodle-grow-text {
+    right: 0;
+  }
+
+  .campus-collage-mask {
+    height: 260px;
   }
 
   .categories-flex {

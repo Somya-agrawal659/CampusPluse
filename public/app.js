@@ -126,7 +126,6 @@ function loadNotices() {
 function renderAll() {
   renderOpportunitiesSection();
 }
-
 function getFilteredList() {
   return AppState.notices.filter(notice => {
     // 1. Filter Chip
@@ -507,11 +506,37 @@ async function registerPushSubscription() {
 
 function initPushWorker() {
   if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data?.type !== 'push-received') return;
+    playNotificationBeep();
+    Toast.show('New CampusPulse Notice', event.data.title || 'A new notice is available.', '🔔');
+  });
   navigator.serviceWorker.register('/service-worker.js').then(() => {
     if ('Notification' in window && Notification.permission === 'granted') {
       registerPushSubscription().catch(error => console.warn('Push subscription unavailable:', error.message));
     }
   }).catch(error => console.warn('Service worker unavailable:', error.message));
+}
+
+function playNotificationBeep() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const context = new AudioContext();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.24);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.25);
+  } catch (error) {
+    console.warn('Notification sound unavailable:', error.message);
+  }
 }
 
 function initBrowserAlerts() {
