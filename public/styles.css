@@ -1857,6 +1857,52 @@ button {
     padding: 16px;
   }
 
+  .callout-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    padding: 22px 18px;
+  }
+
+  .callout-text-group {
+    min-width: 0;
+  }
+
+  .callout-text-group h3 {
+    font-size: 1.25rem;
+  }
+
+  .callout-text-group p {
+    font-size: 0.92rem;
+  }
+
+  .callout-action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .callout-action .btn-lavender-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .callout-qr .callout-action {
+    width: auto;
+    justify-self: end;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .bottom-corner-sticker {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    grid-column: 1 / -1;
+    justify-self: end;
+    margin-top: -6px;
+  }
+
   .footer-inner {
     align-items: flex-start;
     flex-direction: column;
