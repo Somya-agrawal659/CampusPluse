@@ -6,7 +6,8 @@ const { Redis } = require('@upstash/redis');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const DATA_DIR = process.env.VERCEL
+const isVercel = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
+const DATA_DIR = isVercel
   ? path.join('/tmp', 'campuspulse-data')
   : path.join(__dirname, 'data');
 const VAPID_KEYS_PATH = path.join(DATA_DIR, 'vapid-keys.json');
@@ -102,7 +103,7 @@ async function notifySubscribers(notice) {
 
 async function handleApiRequest(req, res, pathname) {
   if (pathname === '/api/push/public-key' && req.method === 'GET') {
-    if (process.env.VERCEL && (!hasVapidConfig || !redis)) {
+    if (isVercel && (!hasVapidConfig || !redis)) {
       sendJson(res, 503, { error: 'Push requires VAPID and Upstash Redis environment variables on Vercel' });
       return true;
     }
@@ -112,7 +113,7 @@ async function handleApiRequest(req, res, pathname) {
 
   if (pathname === '/api/push/subscribe' && req.method === 'POST') {
     try {
-      if (process.env.VERCEL && !redis) {
+      if (isVercel && !redis) {
         sendJson(res, 503, { error: 'Configure Upstash Redis on Vercel before subscribing devices' });
         return true;
       }
