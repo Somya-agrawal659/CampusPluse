@@ -102,6 +102,7 @@ const AppState = {
 };
 
 const STORAGE_KEY = 'campuspulse_notices_exact_v1';
+const PUSH_DISABLED_KEY = 'campuspulse_push_disabled_v1';
 
 // ==========================================================================
 // 3. STORAGE & RECOVERY
@@ -501,7 +502,22 @@ async function registerPushSubscription() {
     body: JSON.stringify(subscription)
   });
   if (!response.ok) throw new Error('Could not save push subscription');
+  localStorage.removeItem(PUSH_DISABLED_KEY);
   return registration;
+}
+
+async function disablePushSubscription() {
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+  if (subscription) {
+    await fetch('/api/push/unsubscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: subscription.endpoint })
+    });
+    await subscription.unsubscribe();
+  }
+  localStorage.setItem(PUSH_DISABLED_KEY, 'true');
 }
 
 function initPushWorker() {
@@ -512,7 +528,7 @@ function initPushWorker() {
     Toast.show('New CampusPulse Notice', event.data.title || 'A new notice is available.', '🔔');
   });
   navigator.serviceWorker.register('/service-worker.js').then(() => {
-    if ('Notification' in window && Notification.permission === 'granted') {
+    if ('Notification' in window && Notification.permission === 'granted' && !localStorage.getItem(PUSH_DISABLED_KEY)) {
       registerPushSubscription().catch(error => console.warn('Push subscription unavailable:', error.message));
     }
   }).catch(error => console.warn('Service worker unavailable:', error.message));
@@ -544,7 +560,31 @@ function initBrowserAlerts() {
   const alertsLabel = document.getElementById('alertsBtnLabel');
   const btnBell = document.getElementById('btnBellAlerts');
 
-  function requestPerm() {
+  function setAlertButtonState(enabled) {
+    if (alertsLabel) alertsLabel.textContent = enabled ? 'Stop Notifications' : 'Enable Notifications';
+    if (btnAlerts) btnAlerts.setAttribute('aria-pressed', String(enabled));
+  }
+
+  const notificationsEnabled = 'Notification' in window
+    && Notification.permission === 'granted'
+    && !localStorage.getItem(PUSH_DISABLED_KEY);
+  setAlertButtonState(notificationsEnabled);
+
+  async function toggleAlerts() {
+    const isEnabled = 'Notification' in window
+      && Notification.permission === 'granted'
+      && !localStorage.getItem(PUSH_DISABLED_KEY);
+    if (isEnabled) {
+      try {
+        await disablePushSubscription();
+        setAlertButtonState(false);
+        Toast.show('Notifications Stopped', 'This device will no longer receive campus alerts.', '🔕');
+      } catch (error) {
+        Toast.show('Could Not Stop Alerts', error.message, '⚠️');
+      }
+      return;
+    }
+
     if (!('Notification' in window)) {
       Toast.show("Unsupported", "Desktop notifications not supported on this browser.", "ℹ️");
       return;
@@ -552,9 +592,9 @@ function initBrowserAlerts() {
 
     Notification.requestPermission().then(async perm => {
       if (perm === 'granted') {
-        if (alertsLabel) alertsLabel.textContent = 'Notifications Active';
         try {
           const registration = await registerPushSubscription();
+          setAlertButtonState(true);
           Toast.show("Notifications Enabled!", "You'll be alerted when new opportunities drop.", "🔔");
           if (registration) {
             await registration.showNotification("CampusPulse Alerts Active", {
@@ -572,8 +612,8 @@ function initBrowserAlerts() {
     });
   }
 
-  if (btnAlerts) btnAlerts.addEventListener('click', requestPerm);
-  if (btnBell) btnBell.addEventListener('click', requestPerm);
+  if (btnAlerts) btnAlerts.addEventListener('click', toggleAlerts);
+  if (btnBell) btnBell.addEventListener('click', toggleAlerts);
 }
 
 // ==========================================================================

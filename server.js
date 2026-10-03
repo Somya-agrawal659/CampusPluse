@@ -133,6 +133,22 @@ async function handleApiRequest(req, res, pathname) {
     return true;
   }
 
+  if (pathname === '/api/push/unsubscribe' && req.method === 'POST') {
+    try {
+      const { endpoint } = await readRequestBody(req);
+      if (!endpoint) {
+        sendJson(res, 400, { error: 'Subscription endpoint is required' });
+        return true;
+      }
+      const currentSubscriptions = await getSubscriptions();
+      await saveSubscriptions(currentSubscriptions.filter(item => item.endpoint !== endpoint));
+      sendJson(res, 200, { unsubscribed: true });
+    } catch (error) {
+      sendJson(res, 400, { error: error.message });
+    }
+    return true;
+  }
+
   if (pathname === '/api/push/notify' && req.method === 'POST') {
     try {
       const notice = await readRequestBody(req);
